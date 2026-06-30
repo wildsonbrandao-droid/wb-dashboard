@@ -343,9 +343,10 @@ body.hints-off .field.hint-active select{border-color:#aaa !important;box-shadow
 .gabarito-row .g-val{color:#1A2540;font-family:monospace}
 /* ── DUIMP SECTION ── */
 .duimp-section{margin-top:20px;border:2px solid #1351B4;border-radius:6px;overflow:hidden}
-.duimp-header{background:linear-gradient(135deg,#071D41,#1351B4);color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+.duimp-section{margin-top:20px;border:2px solid #1351B4;border-radius:6px;overflow:hidden}
+.duimp-header{background:gradient(linear, left top, left bottom, from(#071D41), to(#1351B4));background:linear-gradient(135deg,#071D41,#1351B4);color:#fff;padding:10px 16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
 .duimp-header h4{font-size:13px;font-weight:700;letter-spacing:.3px;margin:0}
-.duimp-header .duimp-badge{background:#FFBC00;color:#071D41;font-size:9px;font-weight:800;padding:2px 8px;border-radius:2px;letter-spacing:.5px}
+.duimp-header .duimp-badge{background:#FFBC00;color:#333;font-size:9px;font-weight:800;padding:2px 8px;border-radius:2px;letter-spacing:.5px}
 .duimp-header .duimp-toggle{font-size:18px;transition:.2s}
 .duimp-body{display:none;padding:16px}
 .duimp-body.open{display:block}
@@ -376,7 +377,7 @@ body.hints-off .field.hint-active select{border-color:#aaa !important;box-shadow
 .duimp-legend span{display:flex;align-items:center;gap:4px}
 .duimp-fields-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
 .duimp-field-card{background:#F4F6FA;border:1px solid #C5D4E8;border-radius:4px;padding:8px 12px}
-.duimp-field-card.is-new{border-color:#A5D6A7;background:#E8F5E9}
+.duimp-field-card.is-new {border-color:#A5D6A7;background:#E8F5E9}
 .duimp-field-card .df-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#1351B4;margin-bottom:3px}
 .duimp-field-card.is-new .df-label{color:#168821}
 .duimp-field-card .df-name{font-size:12px;font-weight:700;color:#071D41;margin-bottom:2px}
@@ -655,7 +656,7 @@ body.hints-off .field.hint-active select{border-color:#aaa !important;box-shadow
       </div>
     </div>
     <div class="tab-content" id="step2">
-      <div class="info"><strong>Aba 3 — Mercadoria e NCM:</strong> Cada <em>adição</em> corresponde a uma NCM distinta. A NCM (8 dígitos) define a alíquota do II, IPI e demais tributos. Verifique se o produto exige LI prévia (anuência de outros órgãos: ANVISA, MAPA, INMETRO).</div>
+      <div class="info"><strong>Aba 3 — Mercadoria e NCM:</strong> Cada <em>adição</em> corresponds a uma NCM distinta. A NCM (8 dígitos) define a alíquota do II, IPI e demais tributos. Verifique se o produto exige LI prévia (anuência de outros órgãos: ANVISA, MAPA, INMETRO).</div>
       <div class="sec">Adicionar Produto / Adição</div>
       <div class="fgrid g3">
         <div class="field req"><label>NCM (8 dígitos)</label><input id="m_ncm" data-edu="ncm" type="text" maxlength="10" placeholder="0000.00.00" oninput="maskNCM(this)"/><span class="hint">Ex: 2106.90.10 — Suplementos alimentares</span></div>
@@ -1697,7 +1698,7 @@ function clearAccessLog() {
   updateLog();
   showToast('Log limpo.', '#555');
 }
-// ── LOGIN ──
+// ── LOGIN CORRIGIDO ──
 function doLogin() {
   var raw = document.getElementById('loginEmail').value.trim().toLowerCase();
   var err = document.getElementById('loginError');
@@ -1722,11 +1723,22 @@ function doLogin() {
     addToLog('[' + ts + '] ✅ ' + match.email + ' (' + match.role + ')');
     enviarLog('LOGIN');
     document.getElementById('loginOverlay').classList.add('hidden');
+    
+    // Recupera síncronamente o estado persistido das travas
+    try {
+      var savedLocks = localStorage.getItem('siscomex_scenarioLocked');
+      if (savedLocks) scenarioLocked = JSON.parse(savedLocks);
+    } catch(e) {}
+
     if (match.role === 'professor') {
       document.getElementById('adminBtn').style.setProperty('display','flex','important');
-      scenarioLocked = [false,false,false];
-      setTimeout(renderScenarioButtons, 80);
+      scenarioLocked = [false,false,false]; // Professor vê destrancado
     }
+    
+    // Força atualização visual imediata eliminando o delay assíncrono
+    renderScenarioButtons();
+    setTimeout(function() { renderScenarioButtons(); }, 100);
+    
     showToast('Bem-vindo(a), ' + match.email.split('@')[0] + (match.role==='professor' ? ' — Painel ⚙ disponível' : '') + '!', '#168821');
   } else {
     var ts2 = new Date().toLocaleString('pt-BR');
@@ -1955,7 +1967,7 @@ var TEST_HINTS = {
   conhecimento:  'Número do Bill of Lading (BL). Use: COSU2024001234. É o título de propriedade da carga durante o transporte — sem o BL, não há liberação.',
   eta:           'Data estimada de chegada ao porto de Santos. Viagens China→Santos levam em média 35-40 dias. Coloque uma data aproximadamente 40 dias à frente.',
   recinto:       'Use: Terminal XXXIX — Santos. É o recinto alfandegado dentro do Porto de Santos onde a carga ficará armazenada até o desembaraço.',
-  ptax:          'Use 5.10 (R$ 5,10 por dólar). Esta é a PTAX de referência para o exercício. Na operação real, o SISCOMEX busca automaticamente a PTAX do dia.',
+  ptax:          'Use 5.10 (R$ 5,10 por dólar). Esta é a PTAX de referência para o exercício. Na operation real, o SISCOMEX busca automaticamente a PTAX do dia.',
   moeda:         'Selecione USD — Dólar Americano. O comércio com China é quase sempre em dólar, mesmo sendo uma moeda americana.',
   frete:         'Digite 480. Frete marítimo de USD 480 (um contêiner LCL — carga fracionada). O AFRMM será 25% deste valor em reais.',
   seguro:        'Digite 28. Seguro de USD 28 (aprox. 0,3% do valor FOB). Obrigatório — sem seguro, presume-se 1,5% do valor FOB.',
@@ -2138,7 +2150,7 @@ var briefingData = [
   { tag:"⚙️ Cenário 2 — Nível Intermediário", colorClass:"c1",
     title:"MetalCatalão — Importação de Equipamentos em Regime Drawback",
     subtitle:"Alemanha → Porto de Paranaguá · Lucro Real · Drawback · Canal Amarelo",
-    caso:"A MetalCatalão Indústria e Comércio Ltda é uma metalúrgica fundada em 1997 no distrito industrial de Catalão-GO, que fabrica componentes para a linha de colhedoras da John Deere e da Agco — as duas maiores plantas do município. Em 2024, venceu uma licitação para exportar 200 conjuntos de transmissão para uma montadora argentina. Para cumprir o contrato, precisa importar redutores de velocidade industriais e motores elétricos trifásicos da Bauer Gear Motor GmbH, fabricante alemão de referência. A operação será registrada sob o regime de Drawback Suspensão — os tributos de importação ficam suspensos enquanto os insumos são industrializados e exportados. O pagamento é em euros, o frete foi contratado separadamente pelo importador (Incoterm FOB), e o produto exige Licença de Importação do INMETRO. O diretor financeiro, Rodrigo Teixeira, quer saber o custo real da operação para comparar com fornecedores nacionais.",
+    caso:"A MetalCatalão Indústria e Comércio Ltda é uma metalúrgica fundada em 1997 no distrito industrial de Catalão-GO, que fabrica componentes para a linha de colhedoras da John Deere e da Agco — as duas maiores plantas do município. Em 2024, venceu uma licitação para exportar 200 conjuntos de transmissão para uma montadora argentina. Para cumprir o contrato, precisa importar redutores de velocidade industriais e motores elétricos trifásicos da Bauer Gear Motor GmbH, fabricante alemão de referência. A operation será registrada sob o regime de Drawback Suspensão — os tributos de importação ficam suspensos enquanto os insumos são industrializados e exportados. O pagamento é em euros, o frete foi contratado separadamente pelo importador (Incoterm FOB), e o produto exige Licença de Importação do INMETRO. O diretor financeiro, Rodrigo Teixeira, quer saber o custo real da operação para comparar com fornecedores nacionais.",
     objetivos:[
       "Compreender o regime Drawback Suspensão e quais tributos ficam suspensos",
       "Calcular o Valor Aduaneiro em euros usando a taxa PTAX correta do dia",
@@ -2222,8 +2234,13 @@ function startScenario() {
 // briefingOverlay handler moved to unified DOMContentLoaded
 // ── SCENARIO LOCK ── (declaração movida para o bloco 1)
 // tryScenario defined above
+
+// ── TOGGLE SCENARIO CORRIGIDO COM PERSISTÊNCIA LOCAL ──
 function toggleScenario(idx) {
   scenarioLocked[idx] = !scenarioLocked[idx];
+  try {
+    localStorage.setItem('siscomex_scenarioLocked', JSON.stringify(scenarioLocked));
+  } catch(e) {}
   renderScenarioButtons();
   var state = scenarioLocked[idx] ? 'bloqueado' : 'liberado';
   showToast(scenarioIcons[idx] + ' Cenário ' + scenarioNames[idx] + ' ' + state + '.', scenarioLocked[idx] ? '#E52207' : '#168821');
@@ -2231,6 +2248,9 @@ function toggleScenario(idx) {
 function toggleAllScenarios() {
   var anyLocked = scenarioLocked.some(function(v){ return v; });
   scenarioLocked = [!anyLocked, !anyLocked, !anyLocked];
+  try {
+    localStorage.setItem('siscomex_scenarioLocked', JSON.stringify(scenarioLocked));
+  } catch(e) {}
   renderScenarioButtons();
   showToast(anyLocked ? '✅ Todos os cenários liberados!' : '🔒 Todos os cenários bloqueados.', anyLocked ? '#168821' : '#555');
 }
@@ -2320,7 +2340,7 @@ var EDU = {
     campo: "Tipo de Declaração",
     aba: "ABA 1 — Importador",
     lei: "Regulamento Aduaneiro Decreto 6.759/2009 Arts. 368–520",
-    conceito: "O tipo de DI define o regime aduaneiro da mercadoria. O regime de Consumo é o mais comum — o produto entra definitivamente no Brasil e todos os tributos são pagos integralmente. O Drawback é um regime especial que suspende ou isenta tributos de insumos que serão industrializados e exportados. A Admissão Temporária permite entrada com suspensão de tributos para produtos que retornarão ao exterior.",
+    conceito: "O tipo de DI define o regime aduaneiro da mercadoria. O regime de Consumo é o mais comum — o produto entra definitivamente no Brasil e todos os tributos serão pagos integralmente. O Drawback é um regime especial que suspende ou isenta tributos de insumos que serão industrializados e exportados. A Admissão Temporária permite entrada com suspensão de tributos para produtos que retornarão ao exterior.",
     impacto: "A escolha errada do regime aduaneiro pode resultar em exigência posterior de tributos com acréscimo de multa e juros. O Drawback, se não cumprida a contrapartida de exportação no prazo, converte-se em importação de consumo com todos os tributos devidos retroativamente."
   },
   canal: {
@@ -2390,7 +2410,7 @@ var EDU = {
     campo: "Packing List",
     aba: "ABA 2 — Exportador",
     lei: "IN RFB 680/2006 · Regulamento Aduaneiro Art. 557",
-    conceito: "O Packing List (lista de embalagem) detalha o conteúdo físico de cada volume ou caixa do embarque: quantidade de itens por caixa, peso líquido e bruto de cada volume, e dimensões. Diferente da invoice (que é financeira), o packing list é um documento físico-logístico que permite ao fiscal conferir se o que está na carga corresponde ao que foi declarado na DI.",
+    conceito: "O Packing List (lista de embalagem) detalha o conteúdo físico de cada volume ou caixa do embaque: quantidade de itens por caixa, peso líquido e bruto de cada volume, e dimensões. Diferente da invoice (que é financeira), o packing list é um documento físico-logístico que permite ao fiscal conferir se o que está na carga corresponde ao que foi declarado na DI.",
     impacto: "Na conferência física (canal Vermelho), o fiscal usa o packing list como roteiro de inspeção. Divergências entre o packing list e o conteúdo físico da carga — mesmo que sem intenção de fraude — podem resultar em apreensão da mercadoria e instauração de procedimento especial de controle aduaneiro."
   },
   cert_origem: {
@@ -2412,7 +2432,7 @@ var EDU = {
     aba: "ABA 3 — Mercadoria",
     lei: "Decreto 11.527/2023 (TEC) · Decreto 8.950/2016 (TIPI) · Res. CAMEX 272/2021",
     conceito: "A NCM é o código de 8 dígitos que classifica cada mercadoria na Nomenclatura Comum do Mercosul, baseada no Sistema Harmonizado (SH) da OMA. Os 4 primeiros dígitos indicam o capítulo e posição, o 5º e 6º a subposição SH, e o 7º e 8º dígitos são específicos do MERCOSUL. A NCM é o ponto de partida de toda a tributação aduaneira — ela determina o II pela TEC, o IPI pela TIPI e a necessidade de LI.",
-    impacto: "Classificar erroneamente a NCM é o erro mais comum e mais caro do comércio exterior. Uma classificação que resulte em alíquota inferior ao correto é enquadrada como evasão fiscal, com multa de 100% do imposto evadido. O importador pode solicitar consulta de classificação formal à Receita Federal antes da operação para garantir segurança jurídica."
+    impacto: "Classificar erroneamente a NCM é o erro mais comum e mais caro do comércio exterior. Uma classificação que resulte in alíquota inferior ao correto é enquadrada como evasão fiscal, com multa de 100% do imposto evadido. O importador pode solicitar consulta de classificação formal à Receita Federal antes da operação para garantir segurança jurídica."
   },
   desc_merc: {
     campo: "Descrição da Mercadoria",
@@ -2461,7 +2481,7 @@ var EDU = {
     aba: "ABA 4 — Transporte",
     lei: "Decreto-Lei 37/1966 · Lei 10.893/2004 (AFRMM) · ANAC/ANTT/ANTAQ",
     conceito: "O modal de transporte define a via de entrada da mercadoria no território aduaneiro brasileiro e os documentos de transporte exigidos. Marítimo (60% das importações brasileiras em valor): BL (Bill of Lading) + CE Mercante + AFRMM. Aéreo: AWB (Air Waybill), mais rápido e seguro, porém com frete muito mais elevado. Rodoviário (principalmente MERCOSUL): CRT ou MIC-DTA.",
-    impacto: "A escolha do modal impacta diretamente o custo CIF: frete aéreo pode ser 5-10 vezes maior que o marítimo para a mesma carga, elevando proporcionalmente a base de cálculo de todos os tributos. Para produtos urgentes ou de alto valor unitário, o modal aéreo pode ser justificado; para commodities e volumes altos, o marítimo é quase sempre obrigatório."
+    impact: "A escolha do modal impacta diretamente o custo CIF: frete aéreo pode ser 5-10 vezes maior que o marítimo para a mesma carga, elevando proporcionalmente a base de cálculo de todos os tributos. Para produtos urgentes ou de alto valor unitário, o modal aéreo pode ser justificado; para commodities e volumes altos, o marítimo é quase sempre obrigatório."
   },
   porto: {
     campo: "Porto / Aeroporto de Entrada",
@@ -2517,27 +2537,27 @@ var EDU = {
     aba: "ABA 5 — Câmbio",
     lei: "Resolução BACEN 3.568/2008 · Circular BACEN 3.691/2013",
     conceito: "As operações de câmbio para importação devem ser contratadas em moeda conversível aceita pelo BACEN. O dólar americano (USD) é a moeda dominante no comércio exterior mundial. Operações em euro (EUR), iene (JPY), yuan (CNY) e libra (GBP) também são comuns. O BACEN publica taxas PTAX para todas as moedas conversíveis, utilizadas para conversão ao real na DI.",
-    impacto: "A escolha da moeda de negociação impacta o risco cambial da operação. Operações com fornecedores chineses faturadas em CNY podem ter vantagens em determinados momentos — o yuan tem apreciado em relação ao dólar em alguns períodos, reduzindo o custo em reais quando comparado a USD."
+    impacto: "A escolha da moeda de negociação impacta o risco cambial da operação. Operações com fornecedores chineses faturadas em CNY podem ter vantagens em determinados momentos — o yuan tem apreciado em relação ao dólar em alguns períodos, aumentando o poder de compra e reduzindo a base tributária calculada em R$."
   },
   frete: {
     campo: "Valor do Frete Internacional",
     aba: "ABA 5 — Câmbio",
     lei: "AVA-GATT Art. 8 · Decreto 92.930/1986 · Circular BACEN 3.506/2010",
     conceito: "O frete internacional compõe obrigatoriamente o Valor Aduaneiro, independente do Incoterm negociado. Mesmo em operações FOB, onde o frete é pago pelo importador, seu valor deve ser declarado na DI e somado ao valor da mercadoria para formar a base CIF. O frete declarado deve ser o efetivamente pago ao transportador internacional, comprovado pela fatura do armador ou agente de carga.",
-    impacto: "O frete marítimo tem flutuado enormemente — durante a pandemia de COVID-19, fretes que custavam USD 1.500 por contêiner chegaram a USD 20.000. Essa variação impacta diretamente a base de cálculo dos tributos de importação. O AFRMM (25% do frete marítimo) é um tributo adicional cobrado sobre o frete em operações marítimas."
+    impacto: "O frete marítimo internacional e sobretaxas logísticas correlatas expandem o custo tributável. Adicionalmente, as operações por água ativam o AFRMM (25% do frete), encarecendo sensivelmente o recolhimento fiscal."
   },
   seguro: {
     campo: "Valor do Seguro Internacional",
     aba: "ABA 5 — Câmbio",
     lei: "AVA-GATT Art. 8 · Decreto 92.930/1986 · Circular SUSEP",
     conceito: "O seguro internacional de transporte também compõe o Valor Aduaneiro CIF, devendo ser declarado mesmo quando negociado separadamente do frete. É obrigatório que a cobertura seja vigente desde o porto de embarque até o porto de destino no Brasil. Se não houver seguro contratado, presume-se que o valor é 1,5% do valor FOB da mercadoria.",
-    impacto: "Importar sem seguro internacional é risco operacional grave: qualquer avaria, roubo ou perda da carga durante o transporte resulta em prejuízo total sem cobertura. Além do risco financeiro, a ausência de seguro pode gerar discussões sobre a composição do Valor Aduaneiro com a Receita Federal."
+    impacto: "Importar sem seguro internacional constitui risco operacional grave. Além da vulnerabilidade financeira em avarias, a falta de apólice aciona a arbitração impositiva de 1,5% pela Receita Federal, inflando artificialmente os custos da cascata interna."
   },
   afrmm: {
     campo: "AFRMM — Adicional ao Frete para Renovação da Marinha Mercante",
     aba: "ABA 5 — Câmbio",
     lei: "Lei 10.893/2004 · Decreto 5.269/2004 · Resolução ANTAQ 3.274/2014",
-    conceito: "O AFRMM é um tributo federal de natureza de contribuição de intervenção no domínio econômico (CIDE), cobrado sobre o frete marítimo internacional. A alíquota é de 25% sobre o frete de longo curso (importações do exterior), 10% para cabotagem e 40% para hidrovias interiores. É recolhido ao Fundo da Marinha Mercante (FMM) e destinado ao financiamento da renovação e expansão da frota mercante brasileira.",
+    concept: "O AFRMM é um tributo federal de natureza de contribuição de intervenção no domínio econômico (CIDE), cobrado sobre o frete marítimo internacional. A alíquota é de 25% sobre o frete de longo curso (importações do exterior), 10% para cabotagem e 40% para hidrovias interiores. É recolhido ao Fundo da Marinha Mercante (FMM) e destinado ao financiamento da renovação e expansão da frota mercante brasileira.",
     impacto: "O AFRMM integra a base de cálculo do ICMS na importação (não do II, IPI, PIS e COFINS). Em operações com frete alto, o AFRMM pode representar um custo significativo — sobre um frete de USD 4.000 com câmbio de R$ 5,20, o AFRMM seria aproximadamente R$ 5.200, que ainda entra na base do ICMS."
   },
   contrato_cambio: {
@@ -2615,6 +2635,12 @@ function initEduListeners() {
 // INIT — único DOMContentLoaded
 // ════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', function() {
+  // CONFIGURAÇÃO CORRIGIDA: Garante a recuperação síncrona do estado das travas antes de desenhar
+  try {
+    var savedLocks = localStorage.getItem('siscomex_scenarioLocked');
+    if (savedLocks) scenarioLocked = JSON.parse(savedLocks);
+  } catch(e) {}
+
   // Admin panel lists
   if (typeof renderEmailList   === 'function') renderEmailList();
   if (typeof renderDomainList  === 'function') renderDomainList();
